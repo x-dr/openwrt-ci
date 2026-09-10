@@ -92,10 +92,6 @@ jobs:
       run: |
         cd $OPENWRT_PATH
         ./scripts/feeds update -a
-        git clone --depth=1 -b master --single-branch --filter=blob:none --sparse https://github.com/vernesong/OpenClash.git package/openclash
-        git -C package/openclash sparse-checkout set luci-app-openclash
-        mv package/openclash/luci-app-openclash package/luci-app-openclash
-        rm -rf package/openclash
         git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall.git package/passwall
         rm -rf feeds/luci/applications/luci-app-passwall
         mv package/passwall/luci-app-passwall feeds/luci/applications
@@ -115,7 +111,6 @@ jobs:
       run: |
         [ -e files ] && mv files $OPENWRT_PATH/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $OPENWRT_PATH/.config
-        echo "CONFIG_PACKAGE_luci-app-openclash=y" >> $OPENWRT_PATH/.config
 
     - name: Download DL Package(下载DL软件包)
       run: |
