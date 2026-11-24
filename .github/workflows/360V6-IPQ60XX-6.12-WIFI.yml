@@ -112,6 +112,24 @@ jobs:
           echo "Error: CONFIG_TARGET_MULTI_PROFILE should not be enabled for ${DEVICE_PROFILE} build" >&2
           exit 1
         fi
+        grep -E '^CONFIG_PACKAGE_.*(nikki|mihomo|sing-box|homeproxy|yq|zerotier|netspeedtest|argon|bootstrap|ip-full|kmod-dummy)' .config || true
+        for pkg in nikki mihomo-meta luci-app-nikki luci-i18n-nikki-zh-cn yq ip-full \
+                   kmod-inet-diag kmod-nft-socket kmod-nft-tproxy kmod-tun kmod-dummy \
+                   luci-theme-bootstrap; do
+          if ! grep -q "^CONFIG_PACKAGE_${pkg}=y$" .config; then
+            echo "Error: required package ${pkg} was not selected after make defconfig" >&2
+            exit 1
+          fi
+        done
+        for pkg in luci-app-homeproxy luci-i18n-homeproxy-zh-cn sing-box \
+                   zerotier luci-app-zerotier luci-i18n-zerotier-zh-cn \
+                   luci-app-netspeedtest speedtest-cli \
+                   luci-theme-argon luci-app-argon-config luci-i18n-argon-config-zh-cn; do
+          if grep -q "^CONFIG_PACKAGE_${pkg}=y$" .config; then
+            echo "Error: removed package ${pkg} is still enabled after make defconfig" >&2
+            exit 1
+          fi
+        done
         make download -j8
         if [ -n "$(find dl -type f -size -1024c)" ]; then
           find dl -type f -size -1024c -exec ls -l {} \; -delete
