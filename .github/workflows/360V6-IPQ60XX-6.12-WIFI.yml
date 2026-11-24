@@ -112,9 +112,10 @@ jobs:
           echo "Error: CONFIG_TARGET_MULTI_PROFILE should not be enabled for ${DEVICE_PROFILE} build" >&2
           exit 1
         fi
-        grep -E '^CONFIG_PACKAGE_.*(nikki|mihomo|sing-box|homeproxy|yq|zerotier|netspeedtest|argon|bootstrap|ip-full|kmod-dummy)' .config || true
+        grep -E '^CONFIG_PACKAGE_.*(nikki|mihomo|sing-box|homeproxy|yq|zerotier|netspeedtest|argon|bootstrap|ip-full|kmod-dummy|wireguard)' .config || true
         for pkg in nikki mihomo-meta luci-app-nikki luci-i18n-nikki-zh-cn yq ip-full \
                    kmod-inet-diag kmod-nft-socket kmod-nft-tproxy kmod-tun kmod-dummy \
+                   kmod-wireguard wireguard-tools luci-proto-wireguard \
                    luci-theme-bootstrap; do
           if ! grep -q "^CONFIG_PACKAGE_${pkg}=y$" .config; then
             echo "Error: required package ${pkg} was not selected after make defconfig" >&2
