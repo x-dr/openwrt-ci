@@ -5,7 +5,7 @@ on: workflow_dispatch
 jobs:
   build:
     name: Build ${{ matrix.arch }}-${{ matrix.sdk }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -19,18 +19,16 @@ jobs:
         uses: easimon/maximize-build-space@master
         with:
           swap-size-mb: 16384 # 增加 16GB 的 Swap
-          
-      - uses: actions/checkout@main
+
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Clone specific package
+
+      - name: Clone specific packages
         run: |
           mkdir -p packages_ci
-          git clone --depth 1 https://github.com/QiuSimons/luci-app-daed.git packages_ci
-          
-      - name: Get node-empty
-        run: |
-          git clone https://github.com/sbwml/node-empty packages_ci
+          git clone --depth 1 https://github.com/QiuSimons/luci-app-daed.git packages_ci/luci-app-daed
+          git clone --depth 1 https://github.com/sbwml/node-empty.git packages_ci/node-empty
 
       - name: Init build dependencies
         env:
@@ -39,22 +37,19 @@ jobs:
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
           sudo -E apt-get -qq update
           sudo -E apt-get -qq install clang llvm npm
-          sudo npm install -g pnpm
-          sudo npm install -g n
-          sudo npm i taze -g
+          sudo npm install -g pnpm n taze
           sudo n stable
-          latest_commit="$(curl -s https://api.github.com/repos/daeuniverse/daed/commits/main | jq -r '.sha' | cut -b 1-7)"
-          latest_wing_commit="$(curl -s https://api.github.com/repos/daeuniverse/dae-wing/commits/main | jq -r '.sha' | cut -b 1-7)"
-          latest_core_commit="$(curl -s https://api.github.com/repos/daeuniverse/dae/commits/main | jq -r '.sha' | cut -b 1-7)"
-          timestamp=$(curl -s https://api.github.com/repos/daeuniverse/daed/commits/main | jq -r '.commit.author.date')
-          formatted_timestamp=$(date --date="$timestamp" "+%Y-%m-%d")
-          echo "version=$latest_commit-wing_$latest_wing_commit-core_$latest_core_commit" >> "$GITHUB_ENV"
+          latest_commit="$(curl -fsSL https://api.github.com/repos/daeuniverse/daed/commits/main | jq -r '.sha' | cut -b 1-7)"
+          latest_wing_commit="$(curl -fsSL https://api.github.com/repos/daeuniverse/dae-wing/commits/main | jq -r '.sha' | cut -b 1-7)"
+          latest_core_commit="$(curl -fsSL https://api.github.com/repos/daeuniverse/dae/commits/main | jq -r '.sha' | cut -b 1-7)"
+          echo "version=${latest_commit}-wing_${latest_wing_commit}-core_${latest_core_commit}" >> "$GITHUB_ENV"
 
       - name: Check Directory
         run: |
           echo "正在检查当前目录下的文件..."
           ls -F
-          ls -R ${{ github.workspace }}/packages_ci
+          ls -R "${{ github.workspace }}/packages_ci"
+
       - name: Building packages
         uses: sbwml/openwrt-gh-action-sdk@go1.25
         env:
@@ -65,7 +60,7 @@ jobs:
           V: s
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.arch }}
           path: bin/packages/${{ matrix.arch }}/*/*.apk
@@ -77,6 +72,6 @@ jobs:
           allowUpdates: true
           tag: daed_${{ env.version }}
           commit: main
-          token: ${{secrets.GITHUB_TOKEN}}
+          token: ${{ secrets.GITHUB_TOKEN }}
           replacesArtifacts: true
           artifacts: "bin/packages/${{ matrix.arch }}/*/*.apk"
