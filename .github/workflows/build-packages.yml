@@ -20,7 +20,7 @@ jobs:
         with:
           swap-size-mb: 16384 # 增加 16GB 的 Swap
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
