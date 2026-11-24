@@ -16,11 +16,11 @@ jobs:
 
     steps:
       - name: Maximize build space & Add Swap
-        uses: easimon/maximize-build-space@master
+        uses: easimon/maximize-build-space@v10
         with:
           swap-size-mb: 16384 # 增加 16GB 的 Swap
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
@@ -51,7 +51,7 @@ jobs:
           ls -R "${{ github.workspace }}/packages_ci"
 
       - name: Building packages
-        uses: sbwml/openwrt-gh-action-sdk@go1.25
+        uses: sbwml/openwrt-gh-action-sdk@go1.27
         env:
           ARCH: ${{ matrix.arch }}-${{ matrix.sdk }}
           FEED_DIR: ${{ github.workspace }}/packages_ci
@@ -60,13 +60,13 @@ jobs:
           V: s
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ matrix.arch }}
           path: bin/packages/${{ matrix.arch }}/*/*.apk
 
       - name: Upload packages
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1.21.0
         with:
           name: daed_${{ env.version }}
           allowUpdates: true
